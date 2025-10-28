@@ -1,0 +1,128 @@
+name: MLFlow CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  schedule:
+    - cron: '0 2 * * *'  # Daily at 2 AM
+  workflow_dispatch:  # Manual trigger
+
+jobs:
+  mlflow-ci-checks:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+      
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+        
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install mlflow scikit-learn pandas numpy requests
+
+    - name: Create CI check script
+      run: |
+        cat > ci_check.py << 'EOF'
+import mlflow
+from mlflow.tracking import MlflowClient
+from sklearn.datasets import load_iris
+from sklearn.metrics import accuracy_score
+import requests
+import sys
+
+MLFLOW_TRACKING_URI = "http://34.122.162.121:8100/"
+
+print("🔧 Running MLFlow CI Checks...")
+print(f"MLFlow Server: http://34.122.162.121:8100/")
+
+# Test connection
+try:
+    response = requests.get(MLFLOW_TRACKING_URI, timeout=10)
+    if response.status_code == 200:
+        print("✅ MLFlow server is accessible")
+    else:
+        print(f"❌ MLFlow server responded with status: {response.status_code}")
+        sys.exit(1)
+except Exception as e:
+    print(f"❌ MLFlow server connection failed: {e}")
+    sys.exit(1)
+
+# Setup MLFlow
+mlflow.set_tracking_uri(MLFLOW_TRACKING_URI)
+client = MlflowClient()
+
+def check_production_model():
+    """Check production model quality"""
+    try:
+        # Get production model
+        prod_models = client.get_latest_versions("iris-classifier", stages=["Production"])
+        if not prod_models:
+            print("❌ No production model found")
+            return False
+            
+        # Load model and test
+        model = mlflow.sklearn.load_model(prod_models[0].source)
+        iris = load_iris()
+        X, y = iris.data, iris.target
+        
+        predictions = model.predict(X)
+        accuracy = accuracy_score(y, predictions)
+        
+        print(f"✅ Production model accuracy: {accuracy:.4f}")
+        
+        if accuracy >= 0.80:
+            print("✅ Model quality check passed")
+            return True
+        else:
+            print("❌ Model quality check failed")
+            return False
+            
+    except Exception as e:
+        print(f"❌ Error in production model check: {e}")
+        return False
+
+# Run checks
+success = check_production_model()
+if success:
+    print("🎉 All CI checks passed!")
+    sys.exit(0)
+else:
+    print("💥 CI checks failed!")
+    sys.exit(1)
+EOF
+
+    - name: Run MLFlow CI Checks
+      run: python ci_check.py
+        
+    - name: Run Basic Tests
+      run: |
+        echo "Running basic model tests..."
+        python -c "
+        from sklearn.datasets import load_iris
+        from sklearn.model_selection import train_test_split
+        iris = load_iris()
+        X, y = iris.data, iris.target
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+        print('✅ Basic data loading test passed')
+        "
+        
+  deploy:
+    runs-on: ubuntu-latest
+    needs: mlflow-ci-checks
+    if: github.ref == 'refs/heads/main' && needs.mlflow-ci-checks.result == 'success'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+      
+    - name: Deploy to Production
+      run: |
+        echo '🚀 Deploying to production...'
+        echo 'MLFlow CI/CD checks passed - ready for deployment'

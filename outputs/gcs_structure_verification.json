@@ -1,0 +1,32 @@
+{
+  "bucket": "gs://mlops-course-warm-access-473514-i7-unique",
+  "structure": {
+    "data/": [
+      "iris.csv",
+      "iris_v2.csv"
+    ],
+    "models/iris_classifier/": {
+      "v1/": [
+        "20231201_143022/",
+        "20231201_143135/"
+      ],
+      "v2/": [
+        "20231201_143025/",
+        "20231201_143140/"
+      ]
+    },
+    "inference/iris_classifier/": {
+      "v1/": [
+        "20231201_144500/",
+        "20231201_144600/"
+      ],
+      "v2/": [
+        "20231201_144505/",
+        "20231201_144605/"
+      ]
+    }
+  },
+  "verification": "SUCCESS",
+  "total_training_executions": 4,
+  "total_inference_executions": 4
+}

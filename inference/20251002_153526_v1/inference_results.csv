@@ -1,0 +1,2 @@
+inference_timestamp,model_timestamp,data_version,accuracy,evaluation_samples,model_path
+20251002_153537,20251002_152037,v1,0.9512195121951219,41,inference/20251002_153526_v1/model.joblib

@@ -1,0 +1,10 @@
+2025-11-09 05:53:59,829 DEBUG    root            Loaded Command Group: ['gcloud', 'projects']
+2025-11-09 05:53:59,875 DEBUG    root            Loaded Command Group: ['gcloud', 'projects', 'describe']
+2025-11-09 05:53:59,878 DEBUG    root            Running [gcloud.projects.describe] with arguments: [--format: "value(projectNumber)", PROJECT_ID_OR_NUMBER: "warm-access-473514-i7"]
+2025-11-09 05:54:00,016 DEBUG    urllib3.connectionpool Starting new HTTPS connection (1): cloudresourcemanager.googleapis.com:443
+2025-11-09 05:54:00,079 DEBUG    urllib3.connectionpool https://cloudresourcemanager.googleapis.com:443 "GET /v1/projects/warm-access-473514-i7?alt=json HTTP/11" 200 None
+2025-11-09 05:54:00,081 DEBUG    root            Chosen display Format:default value(projectNumber)
+2025-11-09 05:54:00,082 INFO     root            Display format: "default value(projectNumber)"
+2025-11-09 05:54:00,127 INFO     ___FILE_ONLY___ 418625495185
+
+2025-11-09 05:54:00,138 DEBUG    root            SDK update checks are disabled.
